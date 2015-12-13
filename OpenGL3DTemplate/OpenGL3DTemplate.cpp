@@ -13,21 +13,99 @@ GLTexture tex_ground;
 GLTexture tex_sky;
 std::vector<Attacker> at;
 
+float lookup = 0;
+float lookdown = 0;
+float lookleft = 0;
+float lookright = 0;
 
+float xcenter = 0;
+float ycenter = 30;
+float zcenter = -40;
+
+
+
+void shoot() {
+	float x = lookleft;
+	int y = lookup;
+	int d;
+	if (x < 0) {
+		d = -1;
+	}
+	else if (x>0) {
+		d = 1;
+	}
+	else {
+		d = 0;
+	}
+	for (float i = 0;i < 40;i += 0.1) {
+		for (int j = 0;j < at.size();j++) {
+			if (at[j].radius >= i & at[j].x >= x) {
+				at.erase(at.begin() + j);
+				break;
+			}
+		}
+		x += d*0.1;
+	}
+}
+
+
+void mouseshoot(int xm,int ym) {
+	float x = xm;
+	int y = ym;
+	int d;
+	if (x < 0) {
+		d = -1;
+	}
+	else if (x>0) {
+		d = 1;
+	}
+	else {
+		d = 0;
+	}
+	for (float i = 0;i < 40;i += 0.5) {
+		for (int j = 0;j < at.size();j++) {
+			if (at[j].radius >= i & at[j].x >= x) {
+				at.erase(at.begin() + j);
+				break;
+			}
+		}
+		x += d*0.1;
+	}
+}
 
 void Loadtextures() {
 	tex_ground.Load("Textures/ground3.bmp");
 	tex_sky.Load("Textures/ground3.bmp");
 }
 
-void Key(unsigned char key, int x, int y) {
-
+void turnleft() {
+	glRotatef(3, 0, -1, 0);
+}
+void turnright() {
+	glRotatef(3, 0, 1, 0);
+}
+void turnup() {
+	glRotatef(3, 1, 0, 0);
+}
+void turndown() {
+	glRotatef(3, 1,0, 0);
 }
 
+void Key(unsigned char key, int x, int y) {
+
+	switch (key) {
+	case 'w':lookup-=0.5;break;
+	case 's':lookup+=0.5;break;
+	case 'a':lookleft-=0.5;break;
+	case 'd':lookleft+=0.5;break;
+	case 'k':shoot();break;
+	}
+	glutPostRedisplay();
+}
 
 void Timer(int value) {
 	Attacker a;
-	a.radius = rand() % 11 + 10;
+	a.radius = rand() % 11 + 100;
 	/*int tmp = a.radius;
 	a.x = (rand() % (tmp + 1)) + (-(tmp/2));*/
 	a.x = rand() % 31 + (-15);
@@ -63,13 +141,12 @@ void Timer(int value) {
 
 void updateGame() {
 	for (int i = 0; i < at.size(); i++) {
-		if (at[i].radius < 6.0) {
+		if (at[i].radius < 2.0) {
 			life--;
 			at.erase(at.begin() + i);
 		}
 	}
 }
-
 
 void skybox(void) {
 
@@ -81,9 +158,9 @@ void skybox(void) {
 	float x = 0;
 	float y = 0;
 	float z = 0;
-	float width = 600;
-	float height = 600;
-	float length = 600;
+	float width = 200;
+	float height = 200;
+	float length = 200;
 	// Bind the BACK texture of the sky map to the BACK side of the cube
 	glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]);
 	// Center the skybox
@@ -145,34 +222,46 @@ void skybox(void) {
 	//glutSolidSphere(2, 40, 40);
 }
 
+void camera() {
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0f, 1100 / 650, 0.1f, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.0f, 5.0f, 0.0f, xcenter, ycenter, zcenter, 0.0f, 1.0f, 0.0f);  //gluLookAt(0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+
+}
 
 void Display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	camera();
 	printf("%i", life);
+
+	glRotatef(lookup, 1, 0, 0);
+	glRotatef(lookleft, 0, 1, 0);
+	
+	glPushMatrix();
 
 	updateGame();
 
 	skybox();
-	////Draw Land
-	//glPushMatrix();
-	//glTranslatef(0.0f, -1.5f, 0.0f);
-	//glScalef(30.0f, 0.1f, 30.0f);
-	//glColor3f(0.0f, 1.0f, 0.0f);
-	//glutSolidCube(1.0f);
-	//glPopMatrix();	
 
 	//Draw Defender
 	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, 0.0f);
-	glScalef(0.5f, 0.5f, 0.5f);
+	glTranslatef(0.0f, 3.0f, 0.0f);
+//	glScalef(0.5f, 0.5f, 0.5f);*/
+	b.posy = lookup;
+	b.posx = lookleft;
 	b.drawDefender();
 	glPopMatrix();
 
 	//Draw Attacker
 	for (int i = 0; i < at.size(); i++) {
+
 		at[i].draw();
 	}
+	glPopMatrix();
 
 	glFlush();
 }
@@ -181,7 +270,7 @@ void Anim() {
 	float tmp;
 	//Move Attacker
 	for (int i = 0; i < at.size(); i++) {
-		if (at[i].radius > 6.0) {
+		if (at[i].radius > 2.0) {
 			at[i].radius = at[i].radius - 0.001;
 			tmp = at[i].x * 0.000085;
 			at[i].x = at[i].x - tmp;
@@ -191,6 +280,13 @@ void Anim() {
 
 	glutPostRedisplay();
 }
+
+void mouse(int b, int s, int x , int y) {
+	if (GLUT_DOWN == b) {
+		mouseshoot(x,y);
+	}
+}
+
 
 void main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -207,15 +303,9 @@ void main(int argc, char** argv) {
 
 	glEnable(GL_DEPTH_TEST);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.0f, 300 / 300, 0.1f, 300.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(0.0f, 40.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);  //gluLookAt(0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-
+	
 	glutKeyboardFunc(Key);
+	glutMouseFunc(mouse);
 	glutTimerFunc(0, Timer, 0);
 
 	Loadtextures();

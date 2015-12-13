@@ -9,7 +9,16 @@ Attacker a;
 Defender b;
 int life = 2;
 
+GLTexture tex_ground;
+GLTexture tex_sky;
 std::vector<Attacker> at;
+
+
+
+void Loadtextures() {
+	tex_ground.Load("Textures/ground3.bmp");
+	tex_sky.Load("Textures/ground3.bmp");
+}
 
 void Key(unsigned char key, int x, int y) {
 
@@ -61,6 +70,82 @@ void updateGame() {
 	}
 }
 
+
+void skybox(void) {
+
+	glEnable(GL_TEXTURE_2D);	// Enable 2D texturing
+
+	glPushMatrix();
+	//-x,x,-y,y,-z,z
+	glDisable(GL_DEPTH_TEST);
+	float x = 0;
+	float y = 0;
+	float z = 0;
+	float width = 600;
+	float height = 600;
+	float length = 600;
+	// Bind the BACK texture of the sky map to the BACK side of the cube
+	glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]);
+	// Center the skybox
+	x = x - width / 2;
+	//y  = y - height /2;
+	z = z - length / 2;
+	glBegin(GL_QUADS);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(x + width, y, z);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(x + width, y + height, z);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y + height, z);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z + length);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y + height, z + length);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(x + width, y + height, z + length);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y, z + length);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, tex_ground.texture[0]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z + length);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(x + width, y, z + length);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y, z);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y + height, z);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(x + width, y + height, z + length);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y + height, z + length);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y + height, z);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y + height, z);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y + height, z + length);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z + length);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y, z);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(x + width, y, z + length);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(x + width, y + height, z + length);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(x + width, y + height, z);
+	glEnd();
+
+	glPopMatrix();
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	//glRotatef( angle, 1.0f, 1.0f, 1.0f )
+	//glutSolidSphere(2, 40, 40);
+}
+
+
 void Display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -68,13 +153,14 @@ void Display(void) {
 
 	updateGame();
 
-	//Draw Land
-	glPushMatrix();
-	glTranslatef(0.0f, -1.5f, 0.0f);
-	glScalef(30.0f, 0.1f, 30.0f);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutSolidCube(1.0f);
-	glPopMatrix();
+	skybox();
+	////Draw Land
+	//glPushMatrix();
+	//glTranslatef(0.0f, -1.5f, 0.0f);
+	//glScalef(30.0f, 0.1f, 30.0f);
+	//glColor3f(0.0f, 1.0f, 0.0f);
+	//glutSolidCube(1.0f);
+	//glPopMatrix();	
 
 	//Draw Defender
 	glPushMatrix();
@@ -85,7 +171,7 @@ void Display(void) {
 
 	//Draw Attacker
 	for (int i = 0; i < at.size(); i++) {
-		at[i].drawAttacker();
+		at[i].draw();
 	}
 
 	glFlush();
@@ -132,6 +218,7 @@ void main(int argc, char** argv) {
 	glutKeyboardFunc(Key);
 	glutTimerFunc(0, Timer, 0);
 
+	Loadtextures();
 	//srand(time(0));
 
 	glutMainLoop();

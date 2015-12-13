@@ -1,10 +1,12 @@
 #pragma once
 #include <glut.h>
 #include <stdio.h>
+#include "Model_3DS.h"
 
 class Defender {
 public:
 	GLUquadricObj *quadratic;
+	Model_3DS gun;
 	Defender();
 	int row;
 	float posx;
@@ -16,6 +18,7 @@ public:
 };
 
 Defender::Defender() {
+	gun.Load("Models/MP5K/M5K.3ds");
 	quadratic = gluNewQuadric();
 	posx = -100;
 	bulletx = posx;
@@ -51,7 +54,9 @@ void Defender::drawDefender() {
 
 		glPushMatrix();
 		glTranslatef(0.0f, 0.0f, 0.0f);
-		glScalef(0.7f, 0.7f, 0.7f);
+		glScalef(0.05,0.05,0.05);
+		glRotatef(10, 0, 1, 0);
+		gun.Draw();
 
 		/*glPushMatrix();
 		glTranslatef(0.0f, 0.0f, 0.0f);
@@ -61,20 +66,20 @@ void Defender::drawDefender() {
 		gluCylinder(quadratic, 2.0f, 2.0f, 10.0f, 32, 32);
 		glPopMatrix();*/
 
-		glPushMatrix();
-		glTranslatef(0.0f, 0.0f, 0.0f);
-		glRotatef(180.0, 0, 1, 0);
-		glScalef(0.1f, 0.1f, 0.1f);
-		glColor3f(1.0f, 0.0f, 0.0f);
-		gluCylinder(quadratic, 2.0f, 2.0f, 7.0f, 32, 32);
-		glPopMatrix();
+		//glPushMatrix();
+		//glTranslatef(0.0f, 0.0f, 0.0f);
+		//glRotatef(180.0, 0, 1, 0);
+		//glScalef(0.1f, 0.1f, 0.1f);
+		//glColor3f(1.0f, 0.0f, 0.0f);
+		//gluCylinder(quadratic, 2.0f, 2.0f, 7.0f, 32, 32);
+		//glPopMatrix();
 
-		glPushMatrix();
-		glTranslatef(0, 0.0, 0);
-		glScalef(0.3, 0.3, 0.3);
-		glColor3f(0.0f, 0.0f, 0.0f);
-		glutSolidSphere(1.0f, 10, 10);
-		glPopMatrix();
+		//glPushMatrix();
+		//glTranslatef(0, 0.0, 0);
+		//glScalef(0.3, 0.3, 0.3);
+		//glColor3f(0.0f, 0.0f, 0.0f);
+		//glutSolidSphere(1.0f, 10, 10);
+		//glPopMatrix();
 
 		glPopMatrix();
 }

@@ -22,6 +22,10 @@ float xcenter = 0;
 float ycenter = 30;
 float zcenter = -40;
 
+bool gameOver = false;
+
+char string[50];
+
 
 
 void shoot() {
@@ -105,9 +109,7 @@ void Key(unsigned char key, int x, int y) {
 
 void Timer(int value) {
 	Attacker a;
-	a.radius = rand() % 11 + 100;
-	/*int tmp = a.radius;
-	a.x = (rand() % (tmp + 1)) + (-(tmp/2));*/
+	a.radius = rand() % 11 + 10;
 	a.x = rand() % 31 + (-15);
 	a.z =  (pow((pow(a.radius, 2) - pow(a.x, 2)), 0.5));
 	int num[] = {-1,1};
@@ -141,10 +143,14 @@ void Timer(int value) {
 
 void updateGame() {
 	for (int i = 0; i < at.size(); i++) {
-		if (at[i].radius < 2.0) {
+		if (at[i].radius < 10.0) {
 			life--;
 			at.erase(at.begin() + i);
 		}
+	}
+
+	if (life == 0) {
+		gameOver = true;
 	}
 }
 
@@ -233,48 +239,82 @@ void camera() {
 
 }
 
+void drawBitmaptext(char *string, float x, float y) {
+	unsigned int c;
+	glRasterPos2f(x, y);
+	for (c = 0; c < strlen(string); c++) {
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[c]);
+	}
+}
+
 void Display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	camera();
-	printf("%i", life);
 
-	glRotatef(lookup, 1, 0, 0);
-	glRotatef(lookleft, 0, 1, 0);
-	
-	glPushMatrix();
+	if (gameOver) {
+		printf("Game Over");
 
-	updateGame();
+		glDisable(GL_TEXTURE_2D);
 
-	skybox();
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(45.0f, 1100 / 650, 0.1f, 1000.0f);
 
-	//Draw Defender
-	glPushMatrix();
-	glTranslatef(0.0f, 3.0f, 0.0f);
-//	glScalef(0.5f, 0.5f, 0.5f);*/
-	b.posy = lookup;
-	b.posx = lookleft;
-	b.drawDefender();
-	glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		gluLookAt(0.0f, 5.0f, 7.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-	//Draw Attacker
-	for (int i = 0; i < at.size(); i++) {
-
-		at[i].draw();
+		glPushMatrix();
+		glColor3f(1.0f, 0.0f, 0.0f);
+		drawBitmaptext("Game Over", 300, 600);
+		glPopMatrix();
 	}
-	glPopMatrix();
 
+	else {
+		printf("%i", life);
+
+		camera();
+		glRotatef(lookup, 1, 0, 0);
+		glRotatef(lookleft, 0, 1, 0);
+
+		glPushMatrix();
+
+		updateGame();
+
+		skybox();
+
+		sprintf_s(string, "Life left: %i\n s", life);
+		drawBitmaptext(string, 300, 600);
+
+		//Draw Defender
+		glPushMatrix();
+		glTranslatef(0.0f, 3.0f, 0.0f);
+		//	glScalef(0.5f, 0.5f, 0.5f);*/
+		b.posy = lookup;
+		b.posx = lookleft;
+		b.drawDefender();
+		glPopMatrix();
+
+		//Draw Attacker
+		for (int i = 0; i < at.size(); i++) {
+
+			at[i].draw();
+		}
+		glPopMatrix();
+	}
 	glFlush();
 }
 
 void Anim() {
-	float tmp;
-	//Move Attacker
-	for (int i = 0; i < at.size(); i++) {
-		if (at[i].radius > 2.0) {
-			at[i].radius = at[i].radius - 0.001;
-			tmp = at[i].x * 0.000085;
-			at[i].x = at[i].x - tmp;
-			at[i].z = (pow((pow(at[i].radius, 2) - pow(at[i].x, 2)), 0.5));
+	if (!gameOver) {
+		float tmp;
+		//Move Attacker
+		for (int i = 0; i < at.size(); i++) {
+			if (at[i].radius > 2.0) {
+				at[i].radius = at[i].radius - 0.001;
+				tmp = at[i].x * 0.000085;
+				at[i].x = at[i].x - tmp;
+				at[i].z = (pow((pow(at[i].radius, 2) - pow(at[i].x, 2)), 0.5));
+			}
 		}
 	}
 
@@ -309,7 +349,7 @@ void main(int argc, char** argv) {
 	glutTimerFunc(0, Timer, 0);
 
 	Loadtextures();
-	//srand(time(0));
+	srand(time(0));
 
 	glutMainLoop();
 }
